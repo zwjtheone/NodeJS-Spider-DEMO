@@ -60,7 +60,7 @@ function downImg(imgurl) {
 				if (err) {
 					console.log(err);
 				} else {
-					// console.log(narr[0]  + narr[1] + narr[2] + "_" + narr[4]);
+					console.log(narr[0]  + narr[1] + narr[2] + "_" + narr[4]);
 					if (urls.length > 0) {
 						downImg(urls.shift());
 					} else {
@@ -71,7 +71,7 @@ function downImg(imgurl) {
 		});
 	});
 }
-var pagemax = 10;    // 获取10页的内容
+var pagemax = 20;    // 获取10页的内容
 function start() {
 	console.log("开始获取图片连接");
 	for (var i = 1; i <= pagemax; i++) {
