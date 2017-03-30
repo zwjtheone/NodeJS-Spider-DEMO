@@ -7,77 +7,104 @@
  * @author: by Jay99, email:zwj@zwj.space
  * ==============================================
  */
-var pageNum = 10;	//要爬取文章的页数
-var pageUrls = [];
-var infoArray = [];
-var index = 0, dowNum = 0;
-for (var i = 1; i <= pageNum; i++) {
-	pageUrls.push('http://idheihei.lofter.com/?page=' + i + '&t=1483620175118');
+
+//依赖模块
+var fs = require('fs');
+var request = require("request");
+var cheerio = require("cheerio");
+var mkdirp = require('mkdirp');
+var async = require('async');
+//目标网址
+var url = 'http://idheihei.lofter.com/tag/%E6%80%A7%E6%84%9F?page=';
+//本地存储目录
+var dir = './lofter';
+// //创建目录
+mkdirp(dir, function (err) {
+	if (err) {
+		console.log(err);
+	}
+});
+//抓取頁數
+var page = 10;
+var urls = [];
+for (var i = 1; i <= page; i++) {
+	urls.push(url + i);
 }
-var superagent = require("superagent"),
-	cheerio    = require("cheerio"),
-	async      = require("async"),
-	eventproxy = require('eventproxy');
-fs = require('fs');
-http = require('http');
-var ep = new eventproxy();
-function onRequest(req, res) {
-	// 设置字符编码(去掉中文会乱码)
-	res.writeHead(200, {'Content-Type': 'text/html;charset=utf-8'});
-	pageUrls.forEach(function (pageUrl) {
-		// res.write(pageUrl + '<br/>');
-		// console.log(pageUrl)
-		superagent.get(pageUrl)
-		.end(function (err, ares) {
-			if (err) {
-				console.log(err);
-				return;
-			}
-			var $      = cheerio.load(ares.text),
-				imgEle = $('.block .main .content .img a img'),
-				len    = imgEle.length;
-			for (var i = 0; i < imgEle.length; i++) {
-				infoArray.push(imgEle.eq(i).attr('src'));
-				// res.write(imgEle.eq(i).attr('src') + '<br/>');
-			}
-			index++;
-			console.log(index)
-			if (index == pageNum) {
-				console.log('图片总数' + infoArray.length);
-				infoArray.forEach(function (imgUrl) {
-					downImg(imgUrl, res)
-				})
-			}
-		});
-	})
-}
-function downImg(imgurl, res) {
-	var narr = imgurl.split("/")[4].split('?')[0];
-	var urlArray = imgurl.split("/");
-	var dowUrl = urlArray[0] + '/' + urlArray[1] + '/' + urlArray[2] + '/' + urlArray[3] + '/' + urlArray[4].split('?')[0];
-	res.write(dowUrl + '<br/>');
-	http.get(dowUrl, function (ress) {
-		var imgData = "";
-		//一定要设置response的编码为binary否则会下载下来的图片打不开
-		ress.setEncoding("binary");
-		ress.on("data", function (chunk) {
-			imgData += chunk;
-		});
-		ress.on("end", function () {
-			var savePath = "./lofter/" + narr;
-			fs.writeFile(savePath, imgData, "binary", function (err) {
-				if (err) {
-					console.log(err);
-				} else {
-					dowNum++;
-					console.log(dowNum);
-					console.log("下载完毕");
-				}
+console.log('爬取的链接有' + urls);
+var concurrencyCount = 0;
+async.mapLimit(urls, 2, function (url, callback) {
+	request(url, function (error, response, body) {
+		if (!error && response.statusCode == 200) {
+			var imgSrc = [];
+			var delay = Number;
+			var $ = cheerio.load(body);
+			$('.img img').each(function (index, value) {
+				delay = parseInt((Math.random() * 10000000) % 2000, 10);
+				concurrencyCount++;
+				var src = $(this).attr('src');
+				var fileName = src.split("/")[4].split('?')[0];
+				var dowUrl = src.split('?')[0];
+				console.log('现在的并发数是', concurrencyCount, '，正在抓取的是', dowUrl, '，耗时' + delay + '毫秒');
+				console.log('值', dowUrl + '_' + fileName);
+				imgSrc.push(dowUrl);
+				// if(page<=1){
+				// 	download(src.split('?')[0], dir, narr).then(function () {
+				// 		// console.log('下载完成');
+				// 		page++;
+				//
+				// 		getImg();
+				// 	});
+				// }
 			});
-		});
-		if (dowNum == infoArray.length) {
-			res.end();
+			setTimeout(function () {
+				concurrencyCount--;
+				callback(null, imgSrc);
+			}, delay);
 		}
 	});
-}
-http.createServer(onRequest).listen(3000);
+}, function (err, result) {
+	if (err) {
+		console.log('1.5 err: ', err);
+	}
+	console.log('抓取图片完成===================================================================');
+	console.log('1.5 results: ', result);
+	//下载文件;
+	download(result);
+});
+//下载方法
+var dowconcurrencyCount = 0;
+var download = function (theImgUrl) {
+	for (var i = 0; i < theImgUrl.length; i++) {
+		async.mapLimit(theImgUrl[i], 1, function (url, callback) {
+			// var promise = new Promise(function (resolve, reject) {
+			var delay = Number;
+			request.head(url, function (err, res, body) {
+				delay = parseInt((Math.random() * 10000000) % 2000, 10);
+				dowconcurrencyCount++;
+				request(url).on('error', function (err) {
+					console.log(err);
+					// reject();
+				}).pipe(fs.createWriteStream(dir + '/' + url.split('/')[4]));
+				console.log('现在正在下载', url.split('/')[4], '，耗时' + delay + '毫秒');
+				// resolve();
+				setTimeout(function () {
+					dowconcurrencyCount--;
+					callback(null, url.split('/')[4]);
+				}, delay);
+			});
+			// });
+			// return promise;
+		}, function (err, result) {
+			if (err) {
+				console.log('1.5 err: ', err);
+			}
+			console.log('抓取图片完成===================================================================');
+			console.log('共抓取图片'+result.length+'张');
+			// console.log('1.5 results: ', result);
+		});
+	}
+};
+
+
+
+

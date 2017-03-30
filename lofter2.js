@@ -1,10 +1,11 @@
 /**
  * VERSION: 0.2.0
- * pachong
- * Created on 2017/1/6.嘻嘻嘻~
+ * nodejs-lofter-spider
+ * Created on 2017/3/30.~
+ * Talk is cheap. Show me the code.
  * GIT:https://github.com/zwj47
  *
- * @author: by Jay99, email:zwj@zwj.space
+ * @author: by zwjtheone, email:zwj@zwj.space
  * ==============================================
  */
 
@@ -14,10 +15,13 @@ var request = require("request");
 var cheerio = require("cheerio");
 var mkdirp = require('mkdirp');
 var async = require('async');
+const nodemailer = require('nodemailer');
 //目标网址
 var url = 'http://idheihei.lofter.com/tag/%E6%80%A7%E6%84%9F?page=';
 //本地存储目录
 var dir = './lofter';
+//发送邮件列表
+const mailList = '474338731@qq.com,695663959@qq.com,781175929@qq.com,953378666@qq.com';
 // //创建目录
 mkdirp(dir, function (err) {
 	if (err) {
@@ -25,7 +29,7 @@ mkdirp(dir, function (err) {
 	}
 });
 //抓取頁數
-var page = 10;
+var page = 2;
 var urls = [];
 for (var i = 1; i <= page; i++) {
 	urls.push(url + i);
@@ -44,8 +48,8 @@ async.mapLimit(urls, 2, function (url, callback) {
 				var src = $(this).attr('src');
 				var fileName = src.split("/")[4].split('?')[0];
 				var dowUrl = src.split('?')[0];
-				console.log('现在的并发数是', concurrencyCount, '，正在抓取的是', dowUrl, '，耗时' + delay + '毫秒');
-				console.log('值', dowUrl + '_' + fileName);
+				//console.log('现在的并发数是', concurrencyCount, '，正在抓取的是', dowUrl, '，耗时' + delay + '毫秒');
+				//console.log('值', dowUrl + '_' + fileName);
 				imgSrc.push(dowUrl);
 				// if(page<=1){
 				// 	download(src.split('?')[0], dir, narr).then(function () {
@@ -67,9 +71,11 @@ async.mapLimit(urls, 2, function (url, callback) {
 		console.log('1.5 err: ', err);
 	}
 	console.log('抓取图片完成===================================================================');
-	console.log('1.5 results: ', result);
+	// console.log('results: ', result);
 	//下载文件;
-	download(result);
+	//download(result);
+	//发送邮件
+	sendMail(result);
 });
 //下载方法
 var dowconcurrencyCount = 0;
@@ -99,12 +105,52 @@ var download = function (theImgUrl) {
 				console.log('1.5 err: ', err);
 			}
 			console.log('抓取图片完成===================================================================');
-			console.log('共抓取图片'+result.length+'张');
+			console.log('共抓取图片' + result.length + '张');
 			// console.log('1.5 results: ', result);
 		});
 	}
 };
-
-
-
-
+//发送邮件
+function sendMail(result) {
+	let mailContent = '';
+	var transporter = nodemailer.createTransport({
+		host            : 'smtp.qq.com',
+		secureConnection: true, // 使用SSL方式（安全方式，防止被窃取信息）
+		port            : 465,
+		auth            : {
+			user: 'zwjtheone@vip.qq.com',
+			pass: 'zxB955519'
+		},
+	});
+	// mailContent需要由读者自行配制，这里对mailContent的赋值已经删去。
+	mailContent = formMailContent(result);
+	var mailOptions = {
+		from   : 'ZWJ <zwjtheone@vip.qq.com>', // sender address
+		to     : mailList, // list of receivers
+		subject: 'ZWJ-每日美女20张 ✔', // Subject line
+		//text   : mailContent, // plaintext body
+		html   : '<b>' + mailContent + '</b>' // html body
+	};
+	transporter.sendMail(mailOptions, function (error, info) {
+		if (error) {
+			console.log(error);
+		} else {
+			console.log('Message sent: ' + info.response);
+		}
+	});
+}
+function formMailContent(info) {
+	let MailHTML = '';
+	let count = 0;
+	for (i of info) {
+		for (j of i) {
+			// console.log(j);
+			MailHTML +=
+				"<img style='display:block;margin:0 auto;width: 65%' src='" + j + "'>" + "\n </br>"
+			count++;
+		}
+	}
+	console.log(MailHTML);
+	console.log('共有' + count + '张图片');
+	return MailHTML;
+}
