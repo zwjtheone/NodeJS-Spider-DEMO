@@ -278,7 +278,7 @@ function sendMail() {
 	let mailOptions = {
 		from   : 'ZWJ <zwjtheone@vip.qq.com>', // sender address
 		to     : mailList, // list of receivers
-		subject: 'ZWJ-每日美女' + mailContent.split('!')[1] + '张', // Subject line
+		subject: 'ZWJ-每日美女--共有' + mailContent.split('!')[1] + '张', // Subject line
 		//text   : mailContent, // plaintext body
 		html   : '<b>' + mailContent.split('!')[0] + '</b>' // html body
 	};
