@@ -16,7 +16,8 @@
     "express": "^4.14.0",
     "nodemailer": "^3.1.8",
     "promise": "^7.1.1",
-    "superagent": "^0.20.0"
+    "superagent": "^0.20.0",
+    "superagent-charset": "^1.1.1"
   },
   "devDependencies": {
     "mkdirp": "^0.5.1",
