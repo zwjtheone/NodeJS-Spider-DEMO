@@ -21,6 +21,7 @@ var url = 'http://idheihei.lofter.com/tag/%E6%80%A7%E6%84%9F?page=';
 //本地存储目录
 var dir = './lofter';
 //发送邮件列表
+// const mailList = '474338731@qq.com';
 const mailList = '474338731@qq.com,695663959@qq.com,781175929@qq.com,953378666@qq.com,979674967@qq.com';
 // //创建目录
 mkdirp(dir, function (err) {
@@ -29,7 +30,7 @@ mkdirp(dir, function (err) {
 	}
 });
 //抓取頁數
-var page = 2;
+var page = 3;
 var urls = [];
 for (var i = 1; i <= page; i++) {
 	urls.push(url + i);
@@ -44,7 +45,7 @@ async.mapLimit(urls, 2, function (url, callback) {
 			var $ = cheerio.load(body);
 			$('.img img').each(function (index, value) {
 				delay = parseInt((Math.random() * 10000000) % 2000, 10);
-				concurrencyCount++;
+				concurrencyCount = concurrencyCount +=1 ;
 				var src = $(this).attr('src');
 				var fileName = src.split("/")[4].split('?')[0];
 				var dowUrl = src.split('?')[0];
@@ -61,7 +62,7 @@ async.mapLimit(urls, 2, function (url, callback) {
 				// }
 			});
 			setTimeout(function () {
-				concurrencyCount--;
+				concurrencyCount = concurrencyCount -=1;
 				callback(null, imgSrc);
 			}, delay);
 		}
@@ -127,7 +128,7 @@ function sendMail(result) {
 	var mailOptions = {
 		from   : 'ZWJ <zwjtheone@vip.qq.com>', // sender address
 		to     : mailList, // list of receivers
-		subject: 'ZWJ-每日美女20张 ✔', // Subject line
+		subject: 'ZWJ-每日美女 ✔', // Subject line
 		//text   : mailContent, // plaintext body
 		html   : '<b>' + mailContent + '</b>' // html body
 	};
@@ -146,7 +147,7 @@ function formMailContent(info) {
 		for (j of i) {
 			// console.log(j);
 			MailHTML +=
-				"<img style='display:block;margin:0 auto;width: 65%' src='" + j + "'>" + "\n </br>"
+				"<img style='display:block;margin:5px auto;width: 85%' src='" + j + "'>" + "\n"
 			count++;
 		}
 	}

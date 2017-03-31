@@ -1,11 +1,19 @@
 var http = require('http');      // http 网路
 var cheerio = require('cheerio');  // html 解析
 var fs = require("fs");        // 流
+var mkdirp = require('mkdirp');
+
 // 设置被查询的目标网址
 var queryHref = "http://www.haha.mx/topic/1/new/";
 // 设置分页位置
 var querySearch = 1;
 var urls = [];
+var dir = 'hahamx';
+mkdirp(dir, function (err) {
+	if (err) {
+		console.log(err);
+	}
+});
 /**
  * 根据url和参数获取分页内容
  * @param {String}： url
@@ -55,7 +63,7 @@ function downImg(imgurl) {
 			imgData += chunk;
 		});
 		res.on("end", function () {
-			var savePath = "./upload/" + narr[0] + narr[1] + narr[2] + "_" + narr[4];
+			var savePath = "./" + dir + "/" + narr[0] + narr[1] + narr[2] + "_" + narr[4];
 			fs.writeFile(savePath, imgData, "binary", function (err) {
 				if (err) {
 					console.log(err);
