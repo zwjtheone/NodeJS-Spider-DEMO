@@ -22,7 +22,7 @@ var url = 'http://idheihei.lofter.com/tag/%E6%80%A7%E6%84%9F?page=';
 var dir = './lofter';
 //发送邮件列表
 // const mailList = '474338731@qq.com';
-const mailList = '474338731@qq.com,695663959@qq.com,781175929@qq.com,953378666@qq.com,979674967@qq.com';
+const mailList = '474338731@qq.com,695663959@qq.com,781175929@qq.com,953378666@qq.com,979674967@qq.com,654949619@qq.com';
 // //创建目录
 mkdirp(dir, function (err) {
 	if (err) {
