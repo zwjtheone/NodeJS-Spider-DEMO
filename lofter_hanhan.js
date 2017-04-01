@@ -291,16 +291,15 @@ function sendMail() {
 	});
 }
 function formMailContent(info) {
-	let MailHTML = '';
+	let MailHTML = [];
 	let count = 0;
 	info.forEach(function (item) {
-		MailHTML +=
-			"<a href='" + item + "'><img style='display:block;margin:5px auto;width: 85%' src='" + item + "'></a>" + "\n"
+		MailHTML.push("<a href='" + item + "'><img style='display:block;margin:5px auto;width: 85%' src='" + item + "'></a>" + "\n");
 		count++;
 	});
 	console.log(MailHTML);
 	console.log('共有' + count + '张图片');
-	return MailHTML + '!' + count;
+	return MailHTML.join('') + '!' + count;
 }
 async function spiderRun() {
 	//爬取hanhan
